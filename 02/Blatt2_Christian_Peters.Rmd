@@ -1,0 +1,95 @@
+---
+title: "Blatt 2"
+author: "Christian Peters"
+output: pdf_document
+---
+
+## H15)
+
+# a)
+
+```{r}
+(A <- matrix(c(4, 1, 1, 1, 1, 4), nrow = 2))
+(ATA <- t(A) %*% A)
+(AAT <- A %*% t(A))
+```
+
+Eigenwerte und Eigenvektoren bestimmen:
+```{r}
+eigenvectorsATA <- eigen(ATA)$vectors
+eigenvaluesATA <- eigen(ATA)$values
+eigenvectorsAAT <- eigen(AAT)$vectors
+eigenvaluesAAT <- eigen(AAT)$values
+```
+
+Die Eigenvektoren von $A^TA$ befinden sich in den Spalten dieser Matrix:
+```{r, echo = FALSE}
+print(eigenvectorsATA)
+```
+
+Die Eigenwerte von $A^TA$ lauten:
+```{r, echo = FALSE}
+print(eigenvaluesATA)
+```
+
+Die Eigenvektoren von $AA^T$ befinden sich in den Spalten dieser Matrix:
+```{r, echo = FALSE}
+print(eigenvectorsAAT)
+```
+
+Die Eigenwerte von $AA^T$ lauten:
+```{r, echo = FALSE}
+print(eigenvaluesAAT)
+```
+
+# b)
+
+Spur von $A^TA$:
+```{r}
+(sum(diag(ATA)))
+```
+Spur von $AA^T$:
+```{r}
+(sum(diag(AAT)))
+```
+
+# c)
+
+Die Determinante entspricht dem Produkt der Eigenwerte. Es ist also
+$det(AA^T) = 27 \cdot 9 = 243$.
+```{r}
+(det(AAT))
+```
+
+# d)
+
+Wegen $det(AA^T) \neq 0$ ist die Matrix $AA^T$ invertierbar. Die Inverse bestimmt
+sich wie folgt:
+```{r}
+(solve(AAT))
+```
+
+# e)
+
+Die Matrix $V$ der Spektralzerlegung von $A^TA$ entspricht der Matrix ihrer
+Eigenvektoren, die Matrix $\Lambda$ enthält ihre Eigenwerte als Diagonalelemente.
+```{r}
+V_ATA <- eigenvectorsATA
+Lambda_ATA <- diag(eigenvaluesATA)
+```
+
+Probe:
+```{r}
+(V_ATA %*% Lambda_ATA %*% t(V_ATA))
+```
+
+Dies funktioniert analog für die Spektralzerlegung von $AA^T$:
+```{r}
+V_AAT <- eigenvectorsAAT
+Lambda_AAT <- diag(eigenvaluesAAT)
+```
+
+Probe:
+```{r}
+(V_AAT %*% Lambda_AAT %*% t(V_AAT))
+```
