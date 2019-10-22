@@ -4,7 +4,7 @@ author: "Christian Peters"
 output: pdf_document
 ---
 
-## H15)
+## H5)
 
 # a)
 
@@ -23,22 +23,22 @@ eigenvaluesAAT <- eigen(AAT)$values
 ```
 
 Die Eigenvektoren von $A^TA$ befinden sich in den Spalten dieser Matrix:
-```{r, echo = FALSE}
+```{r}
 print(eigenvectorsATA)
 ```
 
 Die Eigenwerte von $A^TA$ lauten:
-```{r, echo = FALSE}
+```{r}
 print(eigenvaluesATA)
 ```
 
 Die Eigenvektoren von $AA^T$ befinden sich in den Spalten dieser Matrix:
-```{r, echo = FALSE}
+```{r}
 print(eigenvectorsAAT)
 ```
 
 Die Eigenwerte von $AA^T$ lauten:
-```{r, echo = FALSE}
+```{r}
 print(eigenvaluesAAT)
 ```
 
@@ -74,8 +74,8 @@ sich wie folgt:
 Die Matrix $V$ der Spektralzerlegung von $A^TA$ entspricht der Matrix ihrer
 Eigenvektoren, die Matrix $\Lambda$ enthält ihre Eigenwerte als Diagonalelemente.
 ```{r}
-V_ATA <- eigenvectorsATA
-Lambda_ATA <- diag(eigenvaluesATA)
+(V_ATA <- eigenvectorsATA)
+(Lambda_ATA <- diag(eigenvaluesATA))
 ```
 
 Probe:
@@ -85,11 +85,39 @@ Probe:
 
 Dies funktioniert analog für die Spektralzerlegung von $AA^T$:
 ```{r}
-V_AAT <- eigenvectorsAAT
-Lambda_AAT <- diag(eigenvaluesAAT)
+(V_AAT <- eigenvectorsAAT)
+(Lambda_AAT <- diag(eigenvaluesAAT))
 ```
 
 Probe:
 ```{r}
 (V_AAT %*% Lambda_AAT %*% t(V_AAT))
 ```
+
+# f)
+
+Gemäß Satz 1.30 lassen sich die Matrizen $V$, $\Lambda$ und $W$ wie folgt bestimmen:
+```{r}
+(V_Singular <- eigenvectorsAAT)
+(Lambda_Singular <- diag(sqrt(eigenvaluesAAT)))
+(W_Singular <- eigenvectorsATA[, 1:2]) # only choose eigenvectors for non-zero eigenvalues
+```
+
+Probe:
+```{r}
+(V_Singular %*% Lambda_Singular %*% t(W_Singular))
+```
+
+Man beachte, dass die Singulärwertzerlegung nicht eindeutig ist, da auch die
+Richtungen der Eigenvektoren in $V$ und $W$ nicht eindeutig sind. Daher kann es
+vorkommen, dass sich wie hier die Vorzeichen unterscheiden.
+
+# g)
+
+Gemäß Definition 1.31 ergibt sich die Pseudoinverse zu:
+```{r}
+(pseudoinverse <- W_Singular %*% diag(1/diag(Lambda_Singular)) %*% t(V_Singular))
+```
+
+Auch hier ist wie bei der Singulärwertzerlegung zu beachten, dass die Pseudoinverse
+aufgrund der willkürlichen Vorzeichen der Eigenvektoren nicht eindeutig ist.
