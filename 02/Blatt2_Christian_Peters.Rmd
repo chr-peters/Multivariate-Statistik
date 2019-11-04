@@ -1,8 +1,24 @@
 ---
 title: "Blatt 2"
 author: "Christian Peters"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[L]{Christian Peters}
+- \fancyhead[R]{}
 output: pdf_document
 ---
+
+## H3)
+
+Plotte zunächst die Kurve $f(x_1) = Var(X_2 \vert X_1 = x_1)$:
+```{r}
+curve((1/12 * x**2 - 3/12 * x + 13/72)/(3/2 - x)**2, xlim = c(0, 1), ylab = 'Variance')
+```
+
+Man erkennt also, dass die bedingte Varianz abnimmt, je näher $x_1$ bei 1 liegt.
+Dies bedeutet, dass Werte von $X_1$ in der Nähe von 1 mehr Informationen über $X_2$
+haben als Werte, die weiter von 1 entfernt liegen.
 
 ## H5)
 
