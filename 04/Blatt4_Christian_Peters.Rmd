@@ -47,6 +47,7 @@ ki_i <- function(X, alpha = 0.05) {
   }, lower = 0, upper = 1)$minimum
   return(c(lower = min(first_bound, second_bound), upper = max(first_bound, second_bound)))
 }
+attr(ki_i, 'name') <- 'ki_i' # used later for pretty printing
 ki_i(X)
 ```
 
@@ -63,6 +64,7 @@ ki_ii <- function(X, alpha = 0.05) {
   }, lower = 0, upper = 1)$minimum
   return(c(lower = min(first_bound, second_bound), upper = max(first_bound, second_bound)))
 }
+attr(ki_ii, 'name') <- 'ki_ii'
 ki_ii(X)
 ```
 
@@ -74,6 +76,7 @@ ki_i_slutsky <- function(X, alpha = 0.05) {
   half_length <- qnorm(1-alpha/2) * (1 - rho_hat)**2 / sqrt(n)
   return(c(lower = rho_hat - half_length, upper = rho_hat + half_length))
 }
+attr(ki_i_slutsky, 'name') <- 'ki_i_slutsky'
 ki_i_slutsky(X)
 
 ki_ii_slutsky <- function(X, alpha = 0.05) {
@@ -82,16 +85,35 @@ ki_ii_slutsky <- function(X, alpha = 0.05) {
   return(c(lower = tanh(atanh(rho_hat) - rho_hat/(2*(n-1)) - qnorm(1-alpha/2)/sqrt(n-3)),
            upper = tanh(atanh(rho_hat) - rho_hat/(2*(n-1)) + qnorm(1-alpha/2)/sqrt(n-3))))
 }
+attr(ki_ii_slutsky, 'name') <- 'ki_ii_slutsky'
 ki_ii_slutsky(X)
 ```
 
 # b)
 
 ```{r}
-simulation <- function(n, N = 100) {
-  for (ki_function in c(ki_i, ki_i_slutsky, ki_ii, ki_ii_slutsky)) {
-    
+simulation <- function(n, N = 10000, rho = 0.9) {
+  for (ki_function in c(ki_i = ki_i, ki_i_slutsky, ki_ii, ki_ii_slutsky)) {
+    results <- replicate(N, {
+      sample <- rmvnorm(n, mean = c(0, 0), sigma = matrix(c(1, rho, rho, 1), nrow = 2))
+      ki <- ki_function(sample)
+      return(c(is_in = unname(ki['lower'] <= rho && ki['upper'] >= rho),
+               length = unname(ki['upper'] - ki['lower'])))
+    })
+    in_percentage <- mean(results['is_in', ])
+    average_length <- mean(results['length', ])
+    print(paste0('Simulation results for ', attr(ki_function, 'name'), ':'))
+    print(paste0('% contains true parameter: ', in_percentage))
+    print(paste0('average length: ', average_length))
+    cat('\n')
   }
 }
 simulation(10)
+```
+
+# c)
+
+```{r}
+simulation(500)
+simulation(1000)
 ```
