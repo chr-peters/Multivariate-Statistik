@@ -11,6 +11,7 @@ output: pdf_document
 
 ```{r, include = FALSE}
 library(mvtnorm)
+set.seed(1234)
 ```
 
 ## H8)
@@ -73,7 +74,7 @@ Berechne anschließend noch die Konfidenzintervalle nach Slutsky:
 ki_i_slutsky <- function(X, alpha = 0.05) {
   rho_hat <- cor(X[, 1], X[, 2])
   n <- nrow(X)
-  half_length <- qnorm(1-alpha/2) * (1 - rho_hat)**2 / sqrt(n)
+  half_length <- qnorm(1-alpha/2) * (1 - rho_hat**2) / sqrt(n)
   return(c(lower = rho_hat - half_length, upper = rho_hat + half_length))
 }
 attr(ki_i_slutsky, 'name') <- 'ki_i_slutsky'
@@ -91,7 +92,7 @@ ki_ii_slutsky(X)
 
 # b)
 
-```{r}
+```{r, cache = TRUE}
 simulation <- function(n, N = 10000, rho = 0.9) {
   for (ki_function in c(ki_i = ki_i, ki_i_slutsky, ki_ii, ki_ii_slutsky)) {
     results <- replicate(N, {
@@ -100,20 +101,43 @@ simulation <- function(n, N = 10000, rho = 0.9) {
       return(c(is_in = unname(ki['lower'] <= rho && ki['upper'] >= rho),
                length = unname(ki['upper'] - ki['lower'])))
     })
-    in_percentage <- mean(results['is_in', ])
+    in_probability <- mean(results['is_in', ])
     average_length <- mean(results['length', ])
     print(paste0('Simulation results for ', attr(ki_function, 'name'), ':'))
-    print(paste0('% contains true parameter: ', in_percentage))
-    print(paste0('average length: ', average_length))
+    print(paste0('Contains true parameter: ', in_probability))
+    print(paste0('Average length: ', average_length))
     cat('\n')
   }
 }
 simulation(10)
 ```
 
+Man erkennt, dass die Verfahren $ki\_i$ und $ki\_i\_slutsky$ das Konfidenzniveau bei einer Stichprobengröße
+von $n=10$ nicht einhalten. Die Intervalle von $ki\_i\_slutsky$ sind überdies weniger als
+halb so lang wie die von $ki\_i$ und enthalten den wahren Parameter nur in
+knapp 83% der Fällen.
+
+Wendet man allerdings Fishers Z-Transformation an, wie es bei den Verfahren
+$ki\_ii$ und $ki\_ii\_slutsky$ geschehen ist, so erhält man selbst bei einer
+Stichprobengröße von nur 10 Elementen Konfidenzintervalle, welche das geforderte Niveau einhalten.
+Die Länge dieser Intervalle ist überdies deutlich kürzer, als die ohne Transformation.
+Es lässt sich daher vermuten, dass bei kleinen Stichproben die Intervalle, welche mithilfe
+von Fishers Z-Transformation bestimmt worden sind, vorzuziehen sind.
+Ob man die Intervallgrenzen nun numerisch oder mithilfe von Slutsky bestimmt, scheint unter Betrachtung
+der Simulationsergebnisse hier keinen Unterschied zu machen. Berücksichtigt man allerdings,
+dass die numerische Berechnung der Grenzen etwas rechenaufwändiger ist, sind die
+Intervalle der Funktion $ki\_ii\_slutsky$ unter diesem Aspekt zu bevorzugen.
+
 # c)
 
-```{r}
+```{r, cache = TRUE}
 simulation(500)
 simulation(1000)
 ```
+
+Für größere Stichprobenumfänge von $n=500$ oder $n=1000$ Elementen scheinen die
+Unterschiede zwischen den Verfahren zu verschwinden. Betrachtet man die Ergebnisse
+der Simulation, so scheinen alle Intervalle bei in etwa gleicher Intervallbreite
+das geforderte Niveau einzuhalten. Diese Beobachtung lässt sich vermutlich dadurch
+erklären, dass die Approximation durch die Normalverteilung für große n besser
+funktioniert, als bei kleineren Stichproben.
