@@ -1,0 +1,63 @@
+---
+title: "Blatt 7"
+author: "Christian Peters"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[L]{Christian Peters}
+- \fancyhead[R]{}
+output: pdf_document
+---
+
+# H14)
+
+## a)
+
+Lese die Daten ein und berechne die empirische Kovarianzmatrix:
+```{r}
+data <- read.csv('AufgabeH14.txt')
+(S <- cov(data))
+```
+
+Die Hauptkomponenten ergeben sich aus den normierten Eigenvektoren der empirischen
+Kovarianzmatrix. Die zugehörigen Koeffizientenvektoren befinden sich in den
+Spalten der Matrix, die von der Funktion $eigen$ als Resultat zurückgegeben wird:
+```{r}
+eigen_results <- eigen(S)
+principal_components <- eigen_results$vectors
+rownames(principal_components) <- colnames(data)
+colnames(principal_components) <- c('HK1', 'HK2', 'HK3', 'HK4')
+principal_components
+```
+
+## b)
+
+Kriterium der totalen Variabilität:
+```{r}
+variances <- eigen_results$values
+(p_total <- min(which(cumsum(variances) / sum(variances) >= 0.75)))
+```
+
+Kriterium der mittleren Variabilität:
+```{r}
+(p_mean <- max(which(variances > mean(variances))))
+```
+
+Scree-Graph:
+```{r}
+plot(variances, main = "Scree-Graph", xlab = 'HK', ylab = 'Varianz', xaxt = "n")
+axis(1, at = 1:4)
+```
+
+Anhand des Scree-Graphen würde man sich hier nur für die erste Hauptkomponente entscheiden.
+
+## c)
+
+Durch die erste Hauptkomponente lassen sich Mannschaften, die viele Punkte und
+viele Tore erzielen von Mannschaften trennen, die viele Gegentore kassieren.
+Das Attribut "Karten" läd nur schwach auf HK1 und sollte daher bei der Interpretation nicht
+überbewertet werden.
+
+Mit HK2 allerdings lassen sich Mannschaften, die viele Karten kassieren von Mannschaften trennen,
+die nur wenige Karten kassieren. Hieran lassen sich "faire" Teams von weniger fairen Teams unterscheiden.
+Die anderen Attribute laden nur schwach auf HK2, daher sollte man sie auch hier nicht überinterpretieren.
