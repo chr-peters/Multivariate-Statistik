@@ -13,9 +13,10 @@ output: pdf_document
 
 ## a)
 
-Lese die Daten ein und berechne die empirische Kovarianzmatrix:
+Lese die Daten ein, zentriere sie und berechne die empirische Kovarianzmatrix:
 ```{r}
 data <- read.csv('AufgabeH14.txt')
+data <- scale(data, center = TRUE, scale = FALSE)
 (S <- cov(data))
 ```
 
@@ -61,3 +62,101 @@ Das Attribut "Karten" läd nur schwach auf HK1 und sollte daher bei der Interpre
 Mit HK2 allerdings lassen sich Mannschaften, die viele Karten kassieren von Mannschaften trennen,
 die nur wenige Karten kassieren. Hieran lassen sich "faire" Teams von weniger fairen Teams unterscheiden.
 Die anderen Attribute laden nur schwach auf HK2, daher sollte man sie auch hier nicht überinterpretieren.
+
+## d)
+
+Kommunalitäten der Variablen mit der ersten Hauptkomponente:
+```{r}
+H1 <- diag(variances[1] * principal_components[, 1] %*% t(principal_components[, 1]))
+H1 <- rbind(H1, H1 / diag(S)) # percentages
+colnames(H1) <- colnames(data)
+rownames(H1) <- c('Kommunalitaeten', 'Anteil')
+H1
+```
+
+Kommunalitäten der Variablen mit den ersten beiden Hauptkomponenten:
+```{r}
+H2 <- diag(principal_components[, 1:2] %*% diag(variances[1:2]) %*%
+             t(principal_components[, 1:2]))
+H2 <- rbind(H2, H2 / diag(S))
+colnames(H2) <- colnames(data)
+rownames(H2) <- c('Kommunalitaeten', 'Anteil')
+H2
+```
+
+## e)
+
+Transformiere die Daten zunächst in den Raum der ersten beiden Hauptkomponenten und skaliere
+sie anhand der Standardabweichung entlang der jeweiligen Hauptkomponente:
+```{r}
+data_transformed <- t(diag(1/sqrt(variances[1:2])) %*% t(principal_components[, 1:2]) %*%
+                        t(data))
+```
+
+Erzeuge nun anhand dieser Daten den Biplot:
+```{r}
+plot(data_transformed, xlim = c(-2, 2), ylim = c(-3, 3),  xlab = 'HK1', ylab = 'HK2',
+     main = 'Biplot')
+arrows(0, 0, principal_components[, 1], principal_components[, 2], col = 'red')
+text(principal_components[, 1], principal_components[, 2], labels = colnames(data),
+     col = 'red', pos = c(2, 2, 4, 1))
+```
+
+In diesem Biplot ist keine klare Trennung der Daten in Gruppen zu erkennen. Dies deutet darauf hin,
+dass die Daten im Raum der ersten beiden Hauptkomponenten recht gleichmäßig verteilt sind.
+Da HK1 die Mannschaften mit vielen Toren und Punkten von denen mit vielen Gegentoren trennt, 
+bedeutet das in etwa, dass es ungefähr gleich viele "gute" wie "schlechte" Teams gibt.
+Für HK2 sind hauptsächlich die Karten ausschlaggebend. Hier erkennt man auch keine Clusterbildung.
+
+# H16)
+
+Lese zunächst die Daten ein:
+```{r}
+(R <- matrix(c(1, 0.83, 0.78, 0.83, 1, 0.67, 0.78, 0.67, 1), nrow = 3))
+```
+
+Im Folgenden wird die Hauptkomponentenmethode verwendet um zu einer Approximation
+$\hat{R} = LL^\prime + V$ zu gelangen.
+
+Erste Iteration:
+```{r}
+eigen_res <- eigen(R)
+L <- sqrt(eigen_res$values[1]) * eigen_res$vectors[, 1]
+V <- diag(diag(R - L %*% t(L)))
+L
+V
+```
+
+Zweite Iteration:
+```{r}
+eigen_res <- eigen(R - V)
+L <- sqrt(eigen_res$values[1]) * eigen_res$vectors[, 1]
+V_old <- V
+V <- diag(diag(R - L %*% t(L)))
+L
+V
+```
+
+Iteriere nun solange, bis sich die Matrix V stabilisiert:
+```{r}
+iterations <- 2
+while(norm(V - V_old, type = 'F') > 1e-6){
+  eigen_res <- eigen(R - V)
+  L <- sqrt(eigen_res$values[1]) * eigen_res$vectors[, 1]
+  V_old <- V
+  V <- diag(diag(R - L %*% t(L)))
+  iterations <- iterations + 1
+}
+L
+V
+iterations
+```
+
+Probe zum Vergleich mit der ursprünglichen Korrelationsmatrix:
+```{r}
+L %*% t(L) + V
+```
+
+Man erkennt also, dass sich das gewählte Modell mit einem Faktor recht gut
+zur Beschreibung der Daten eignet.
+Das hier gefundene L ist nur bis auf orthogonale Transformationen (Rotationen) eindeutig.
